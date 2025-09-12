@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import connectionPool from "./utils/db.js";
+import validatePost from "./middlewares/postValidation.mjs";
 
 const app = express();
 const port = process.env.PORT || 4001;
@@ -8,7 +9,7 @@ const port = process.env.PORT || 4001;
 app.use(cors());
 app.use(express.json());
 
-app.post("/posts", async (req, res) => {
+app.post("/posts", validatePost, async (req, res) => {
     const {title, image, category_id, description, content, status_id} = req.body;
 
     if (!title || !image || !category_id || !description || !content || !status_id) {
@@ -87,7 +88,7 @@ app.get("/posts/:id", async (req, res) => {
     }
 });
 
-app.put("/posts/:id", async (req, res) => {
+app.put("/posts/:id", validatePost, async (req, res) => {
     try {
         const postId = req.params.id;
         const updatedPost = {...req.body, date: new Date()};
