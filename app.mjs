@@ -47,6 +47,119 @@ app.post("/posts", async (req, res) => {
   }
 });
 
+app.get("/posts", async (req, res) => {
+    try {
+        const results = await connectionPool.query(`SELECT * FROM POSTS`);
+        console.log(results);
+
+        return res.status(200).json({
+            data: results.rows,
+        })
+    } catch (error) {
+        console.error(error)
+        return res.status(500).json({
+            message: "Server could not read post because database connection"
+        })
+    }
+});
+
+app.get("/posts/:id", async (req, res) => {
+    try {
+        const postId = req.params.id;
+        const results = await connectionPool.query(`
+            SELECT * FROM posts WHERE id = $1`
+        ,[postId]);
+
+        if (results.rows.length === 0) {
+      return res.status(404).json({
+        message: "Server could not find a requested post"
+      });
+    }
+
+        return res.status(200).json({
+            data: results.rows[0]
+        });
+    } catch (error) {
+        console.error(error)
+        return res.status(500).json({
+            message: "Server could not read post because database connection"
+        });
+    }
+});
+
+app.put("/posts/:id", async (req, res) => {
+    try {
+        const postId = req.params.id;
+        const updatedPost = {...req.body, date: new Date()};
+
+        const results = await connectionPool.query(`
+            UPDATE posts
+            set image = $2,
+            category_id = $3,
+            title = $4,
+            description = $5,
+            date = $6,
+            content = $7,
+            status_id = $8
+            WHERE id = $1
+            RETURNING *
+            `,
+        [
+            postId,
+            updatedPost.image,
+            updatedPost.category_id,
+            updatedPost.title,
+            updatedPost.description,
+            updatedPost.date,
+            updatedPost.content,
+            updatedPost.status_id,
+        ]);
+
+        if (results.rows.length === 0) {
+            return res.status(404).json({
+                message: "Server could not find a requested post to update"
+            });
+        }
+
+        return res.status(200).json({
+            message: "Updated post successfully"
+        });
+    } catch (error) {
+        console.error(error)
+        return res.status(500).json({
+            message: "Server could not update post because database connection"
+        });
+    }
+});
+
+app.delete("/posts/:id", async (req, res) => {
+    try {
+        const postId = req.params.id;
+
+        const results = await connectionPool.query(`
+            DELETE FROM posts
+            where id = $1
+            RETURNING *`,
+        [postId]);
+
+        if (results.rows.length === 0) {
+            return res.status(404).json({
+                message: "Server could not find a requested post to delete"
+            });
+        }
+
+        return res.status(200).json({
+            message: "Deleted post successfully"
+        });
+
+    } catch (error) {
+        console.error(error)
+        return res.status(500).json({
+            message: "Server could not delete post because database connection"
+        });
+    }
+});
+
 app.listen(port, () => {
   console.log(`Server is running at ${port}`);
 });
