@@ -8,11 +8,14 @@ const port = process.env.PORT || 4001;
 app.use(cors());
 app.use(express.json());
 
-app.get("/", (req, res) => {
-  res.send("Hello");
-});
-
 app.post("/posts", async (req, res) => {
+    const {title, image, category_id, description, content, status_id} = req.body;
+
+    if (!title || !image || !category_id || !description || !content || !status_id) {
+        return res.status(400).json({
+            message: "Server could not create post because there are missing data from client"
+        });
+    }
   try {
     const newPost = {
       ...req.body,
