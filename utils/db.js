@@ -1,8 +1,12 @@
-import pkg from "pg";
-const { Pool } = pkg;
+// Create PostgreSQL Connection Pool here !
+import * as pg from "pg";
+
+const { Pool } = pg.default;
 
 const connectionPool = new Pool({
-  connectionString: "postgresql://postgres:pa55w02d@localhost:5432/personal-blog-data",
+  // ตรงนี้ต้องเปลี่ยน connectionString เป็นของตัวเองด้วยนะ
+  connectionString: process.env.CONNECTION_STRING,
 });
 
 export default connectionPool;
+
